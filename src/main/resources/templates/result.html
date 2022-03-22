@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form action="#" th:action="@{/}"  method="get">
+<h2 th:if="${currencyName != null}" th:text="'Actual ' + ${currencyName} + ' (' + ${currency} + ') rate:'"></h2>
+    <h2 th:unless="${currencyName != null}" th:text="'Actual ' + ${currency} + ' rate:'"></h2>
+<p th:text="${latestCurrencies}"></p>
+<h2 th:if="${currencyName != null}" th:text="${currencyName} + ' (' +  ${currency} + ')  rate at '+${startDate} + ':'"></h2>
+    <h2 th:unless="${currencyName != null}" th:text=" ${currency} + ' rate at '+${startDate} + ':'"></h2>
+<p th:text="${startHistoricalCurrencyRates}"></p>
+<h2 th:if="${currencyName != null}" th:text="${currencyName} + ' (' + ${currency} + ')  rate at '+${endDate} + ':'"></h2>
+    <h2 th:unless="${currencyName != null}" th:text="${currency} + ' rate at '+${endDate} + ':'"></h2>
+<p th:text="${endHistoricalCurrencyRates}"></p>
+<h2 th:text="'Percentage change between ' + ${startDate} + ' and ' + ${endDate} + ':'"></h2>
+<p th:if="${ifPositive}" th:text="'+'+${percentageChange} + '%'" style="color:green"></p>
+<p th:unless="${ifPositive}" th:text="'-'+${percentageChange} + '%'" style="color:red"></p>
+<h2 th:text="'The lowest exchange rate during this time period (reached at '+${lowestRateDay} + '):'"></h2>
+<p th:text=" ${min}"></p>
+<h2 th:text="'The highest exchange rate during this time period (reached at '+${highestRateDay} + '):'"></h2>
+<p th:text="${max}"></p>
+<h2 th:text="'Average exchange rate during this time period:'"></h2>
+<p th:text="${avg}"></p>
+<h2 th:if="${dailyMaxDifUpFirst != null} and ${dailyMaxDifUpSecond != null}" th:text="'The highest daily rate increase between ' + ${dailyMaxDifUpFirst} + ' and ' + ${dailyMaxDifUpSecond} + ':'"></h2>
+<p th:if="${dailyMaxDifUpFirst != null} and ${dailyMaxDifUpSecond != null}" th:text="'+' + ${dailyMaxDifUp}" style="color:green;"></p>
+<h2 th:if="${dailyMaxDifDownFirst != null} and ${dailyMaxDifDownSecond != null}" th:text="'The highest daily rate decline between ' + ${dailyMaxDifDownFirst} + ' and ' + ${dailyMaxDifDownSecond} + ':'"></h2>
+<p th:if="${dailyMaxDifDownFirst != null} and ${dailyMaxDifDownSecond != null}" th:text="'-' + ${dailyMaxDifDown}" style="color:red;"></p>
+<h2 th:if="${dailyMinDifUpFirst != null} and ${dailyMinDifUpSecond != null}" th:text="'The lowest daily rate increase between ' + ${dailyMinDifUpFirst} + ' and ' + ${dailyMinDifUpSecond} + ':'"></h2>
+<p th:if="${dailyMinDifUpFirst != null} and ${dailyMinDifUpSecond != null}" th:text="'+'+${dailyMinDifUp}" style="color:green;"></p>
+<h2 th:if="${dailyMinDifDownFirst != null} and ${dailyMinDifDownSecond != null}" th:text="'The highest daily rate decline between ' + ${dailyMinDifDownFirst} + ' and ' + ${dailyMinDifDownSecond} + ':'"></h2>
+<p th:if="${dailyMinDifDownFirst != null} and ${dailyMinDifDownSecond != null}" th:text="'-' + ${dailyMinDifDown}" style="color:red;"></p>
+
+    <input type="submit" value="Go back to form">
+</form>
+
+</body>
+</html>
