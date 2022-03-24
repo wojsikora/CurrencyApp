@@ -1,4 +1,4 @@
-package com.example.currency.object;
+package com.example.currency.model;
 
 import lombok.Getter;
 

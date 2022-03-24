@@ -1,8 +1,8 @@
 package com.example.currency.controller;
 
-import com.example.currency.object.CurrencyRates;
-import com.example.currency.object.FormFields;
-import com.example.currency.object.Statistics;
+import com.example.currency.model.CurrencyRates;
+import com.example.currency.model.FormFields;
+import com.example.currency.model.Statistics;
 import com.example.currency.service.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.ui.Model;
@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 @org.springframework.stereotype.Controller
@@ -69,7 +72,7 @@ public class Controller {
             CurrencyRates endHistoricalCurrencyRates;
 
             if (start.equals(LocalDate.now())) {
-                startHistoricalCurrencyRates = service.getCurrencies();
+                startHistoricalCurrencyRates = currencies;
             } else {
                 startHistoricalCurrencyRates = service.getHistoricalCurrencyRates(startDate);
             }
@@ -77,7 +80,7 @@ public class Controller {
             model.addAttribute("startDate", startDate);
 
             if (end.equals(LocalDate.now())) {
-                endHistoricalCurrencyRates = service.getCurrencies();
+                endHistoricalCurrencyRates = currencies;
             } else {
                 endHistoricalCurrencyRates = service.getHistoricalCurrencyRates(endDate);
             }
@@ -122,7 +125,7 @@ public class Controller {
         }
     }
 
-    public Statistics getStatistics(String startDate, String endDate, String currency) throws JsonProcessingException {
+    public Statistics getStatistics(String startDate, String endDate, String currency) throws JsonProcessingException, InterruptedException {
 
         LocalDate start = LocalDate.parse(startDate);
         LocalDate end = LocalDate.parse(endDate);
@@ -149,15 +152,29 @@ public class Controller {
         String dailyMinDifDownFirst = null;
         String dailyMinDifDownSecond = null;
 
+        ConcurrentHashMap<String, Double> currencyRatesMap = new ConcurrentHashMap<>();
+        List<Thread> threadList = new ArrayList<>();
+
+        for(LocalDate date = start; date.isBefore(end) || date.equals(end); date = date.plusDays(1)) {
+
+            if (date.equals(LocalDate.now())) {
+                CurrencyThread thread = new CurrencyThread(date.toString(), currency, service, currencyRatesMap, "latest");
+                thread.start();
+                threadList.add(thread);
+            } else {
+                CurrencyThread thread = new CurrencyThread(date.toString(), currency, service, currencyRatesMap, "historical");
+                thread.start();
+                threadList.add(thread);
+            }
+        }
+
+        for(Thread t: threadList){
+            t.join();
+        }
 
         for(LocalDate date = start; date.isBefore(end) || date.equals(end); date = date.plusDays(1)){
-            double certainCurrencyRate;
-            if(date.equals(LocalDate.now())){
-                certainCurrencyRate = service.getCurrencies().getRates().get(currency);
-            }
-            else {
-                certainCurrencyRate = service.getHistoricalCurrencyRates(date.toString()).getRates().get(currency);
-            }
+
+            double certainCurrencyRate = currencyRatesMap.get(date.toString());
             sum+=certainCurrencyRate;
             i+=1.0;
             if(min > certainCurrencyRate){
@@ -168,7 +185,6 @@ public class Controller {
                 max = certainCurrencyRate;
                 highestRateDay = date.toString();
             }
-
             if(!date.equals(start)){
                 if(previousDayValue > certainCurrencyRate && dailyMinDifDown > previousDayValue - certainCurrencyRate){
                     dailyMinDifDown = previousDayValue - certainCurrencyRate;
@@ -192,7 +208,6 @@ public class Controller {
 
                 }
             }
-
             previousDayValue = certainCurrencyRate;
         }
 
